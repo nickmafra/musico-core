@@ -1,4 +1,4 @@
-package teste;
+package com.mafra.musico;
 
 /**
  * Criado a partir do modelo do site <a href=

@@ -1,4 +1,4 @@
-package teste;
+package com.mafra.musico;
 
 import java.util.Arrays;
 import java.util.Random;
