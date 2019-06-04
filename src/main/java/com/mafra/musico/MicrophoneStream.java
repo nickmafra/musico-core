@@ -24,13 +24,23 @@ public class MicrophoneStream extends Thread {
 	private byte[] buffer;
 	private volatile int[] data;
 	private volatile int offset = 0;
+	private long timeStart;
+	private int pick;
 
 	public MicrophoneStream() {
 		super("Microphone");
 	}
 
-	public void setSampleSize(int sampleSize) {
-		this.sampleSize = sampleSize;
+	public float getSampleRate() {
+		return sampleRate;
+	}
+
+	public int getSampleSizeInBits() {
+		return sampleSizeInBits;
+	}
+
+	public void setSampleSizeInBits(int sampleSizeInBits) {
+		this.sampleSizeInBits = sampleSizeInBits;
 	}
 
 	public void setChannels(int channels) {
@@ -41,11 +51,19 @@ public class MicrophoneStream extends Thread {
 		return targetLine;
 	}
 
-	public int[] getData() {
-		return data == null ? null : Arrays.copyOf(data, data.length);
+	public int getDelay() {
+		return delay;
 	}
 
-	public int[] getLastData(int length) {
+	public void setDelay(int delay) {
+		this.delay = delay;
+	}
+
+	public synchronized int[] getData(int length) {
+		return data == null ? null : Arrays.copyOf(data, length);
+	}
+
+	public synchronized int[] getLastData(int length) {
 		int offset = this.offset;
 		int[] lastData = new int[length];
 		if (offset > length) {
@@ -61,12 +79,12 @@ public class MicrophoneStream extends Thread {
 	public void configFormat() {
 		sampleSize = sampleSizeInBits / 8;
 		frameSize = channels * sampleSize;
-		range = (int) Math.pow(2, sampleSizeInBits);
+		range = 1 << sampleSizeInBits;
 		format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sampleRate, sampleSizeInBits, channels, frameSize,
 				sampleRate, false);
 	}
 
-	private void bufferToData(int bOffset, int length) {
+	private synchronized void bufferToData(int bOffset, int length) {
 		for (int i = 0; i < length; i += sampleSize) {
 			byte b0 = buffer[bOffset + i];
 			byte b1 = buffer[bOffset + i + 1];
@@ -121,17 +139,24 @@ public class MicrophoneStream extends Thread {
 		// armazena o que cabe em 1s
 		data = new int[channels * (int) sampleRate];
 		offset = 0;
+		timeStart = System.currentTimeMillis();
+		pick = 0;
+		long dt;
 		while (!isInterrupted()) {
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException e) {
-				break;
-			}
 			int len = targetLine.read(buffer, 0, buffer.length);
 			if (len < 0) {
 				break;
 			} else if (len > 0) {
 				bufferToDataWrap(len);
+			}
+			pick++;
+			dt = timeStart + pick * delay - System.currentTimeMillis();
+			if (dt > 0) {
+				try {
+					Thread.sleep(dt);
+				} catch (InterruptedException e) {
+					break;
+				}
 			}
 		}
 		stopLine();

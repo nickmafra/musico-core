@@ -15,6 +15,7 @@ public class Graph extends JFrame {
 	
 	private int width = 1024, height = 1024;
 	private double[] data;
+	private boolean positive;
 
 	public Graph() {
 		super("Graph");
@@ -52,10 +53,21 @@ public class Graph extends JFrame {
 				return;
 			}
 			
-			int y0 = height / 2;
+			int y0 = positive ? height : height / 2;
+			int h = positive ? height : height / 2;
 			g2.setColor(Color.WHITE);
 			for (int x = 0; x < width; x++) {
-				int y = (int) (y0 + data[x] * height / 2);
+				double v = 0;
+				int x0 = data.length * x / width;
+				int x1 = data.length * (x + 1) / width;
+				if (x0 == x1) {
+					continue;
+				}
+				for (int i = x0; i < x1; i++) {
+					v += data[i];
+				}
+				v /= x1 - x0;
+				int y = (int) (y0 - v * h);
 				y = y < 0 ? 0 : y > height ? height : y;
 				g2.drawLine(x, y0, x, y);
 			}
@@ -74,7 +86,7 @@ public class Graph extends JFrame {
 		double[] data;
 		while(graph.isActive()) {
 			Thread.sleep(1000);
-			data = TestUtil.randomArray(length, precision);
+			data = Util.randomArray(length, precision);
 			graph.setData(data);
 			graph.repaint();
 		}

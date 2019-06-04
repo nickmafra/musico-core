@@ -76,12 +76,17 @@ public class FFT {
 		fft(xR, xI, true);
 	}
 
-	public static void fft(double[] x) {
-		fft(x, new double[x.length], false);
+	public static double[] fft(double[] xR) {
+		double[] xI = new double[xR.length];
+		fft(xR, xI, false);
+		return getMagnitude(xR, xI);
 	}
 
-	public static void ifft(double[] x) {
-		fft(x, new double[x.length], true);
+	public static double[] getMagnitude(double[] xR, double[] xI) {
+		double[] x = new double[Math.min(xR.length, xI.length)];
+		for (int i = 0; i < x.length; i++) {
+			x[i] = Math.hypot(xR[i], xI[i]);
+		}
+		return x;
 	}
-
 }

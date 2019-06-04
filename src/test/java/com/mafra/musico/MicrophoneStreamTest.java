@@ -9,7 +9,7 @@ public class MicrophoneStreamTest {
 		int n = 100;
 		while (true) {
 			Thread.sleep(100);
-			int[] data = phone.getLastData(4410);
+			double[] data = Util.toDouble(phone.getLastData(4410), 16);
 			if (data == null) {
 				continue;
 			}
@@ -23,10 +23,10 @@ public class MicrophoneStreamTest {
 				double x = (data[i] - mean);
 				level += x * x;
 			}
-			level = Math.sqrt(level / data.length);
+			level = 10 * Math.log10(Math.sqrt(level / data.length));
 			System.out.println("n = " + n);
-			System.out.println("Mean:\t" + String.format("%10d", (long) mean));
-			System.out.println("Level:\t" + String.format("%10d", (long) level));
+			System.out.println("Mean:\t" + String.format("%10f", mean));
+			System.out.println("Level:\t" + String.format("%10f", level));
 			n--;
 			if (n <= 0) {
 				phone.interrupt();

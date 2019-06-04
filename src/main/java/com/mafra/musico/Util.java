@@ -2,7 +2,7 @@ package com.mafra.musico;
 
 import java.util.Random;
 
-public class TestUtil {
+public class Util {
 
 	public static final Random rdm = new Random();
 
@@ -26,6 +26,15 @@ public class TestUtil {
 		FFT.fft(xR, xI);
 		roundArray(xR, precision);
 		roundArray(xI, precision);
+	}
+
+	public static double[] toDouble(int[] x, int sizeInBits) {
+		double precision = 1 << (sizeInBits - 1);
+		double[] y = new double[x.length];
+		for (int i = 0; i < x.length; i++) {
+			y[i] = x[i] / precision;
+		}
+		return y;
 	}
 
 }
