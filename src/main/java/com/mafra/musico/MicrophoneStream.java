@@ -11,13 +11,7 @@ import javax.sound.sampled.TargetDataLine;
 public class MicrophoneStream extends Thread {
 
 	private AudioFormat format;
-	private float sampleRate = 44100;
-	private int sampleSizeInBits = 16; // in bits
-	private int channels = 1;
 
-	private int sampleSize; // in bytes
-	private int frameSize; // in bytes
-	private int range;
 	private TargetDataLine targetLine;
 
 	private int delay = 100;
@@ -29,22 +23,20 @@ public class MicrophoneStream extends Thread {
 
 	public MicrophoneStream() {
 		super("Microphone");
+		configDefaultFormat();
 	}
 
-	public float getSampleRate() {
-		return sampleRate;
+	public AudioFormat getFormat() {
+		return format;
 	}
 
-	public int getSampleSizeInBits() {
-		return sampleSizeInBits;
-	}
-
-	public void setSampleSizeInBits(int sampleSizeInBits) {
-		this.sampleSizeInBits = sampleSizeInBits;
-	}
-
-	public void setChannels(int channels) {
-		this.channels = channels;
+	/**
+	 * Equivalent to getFormat().getSampleSizeInBits() / 8
+	 * 
+	 * @return the sample size, in bytes
+	 */
+	public int getSampleSize() {
+		return format.getSampleSizeInBits() / 8;
 	}
 
 	public TargetDataLine getTargetLine() {
@@ -76,15 +68,27 @@ public class MicrophoneStream extends Thread {
 		return lastData;
 	}
 
-	public void configFormat() {
-		sampleSize = sampleSizeInBits / 8;
-		frameSize = channels * sampleSize;
-		range = 1 << sampleSizeInBits;
-		format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sampleRate, sampleSizeInBits, channels, frameSize,
-				sampleRate, false);
+	public void configFormat(AudioFormat format) {
+		if (format.isBigEndian() || format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+			throw new IllegalArgumentException("AudioFormat not supported.");
+		}
+		this.format = format;
+	}
+
+	public void configFormat(float sampleRate, int sampleSizeInBits, int channels) {
+		boolean signed = true;
+		boolean bigEndian = false;
+		format = new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
+		configFormat(format);
+	}
+
+	public void configDefaultFormat() {
+		configFormat(44100, 16, 1);
 	}
 
 	private synchronized void bufferToData(int bOffset, int length) {
+		int sampleSize = getSampleSize();
+		int range = 1 << (format.getSampleSizeInBits() - 1);
 		for (int i = 0; i < length; i += sampleSize) {
 			byte b0 = buffer[bOffset + i];
 			byte b1 = buffer[bOffset + i + 1];
@@ -100,7 +104,7 @@ public class MicrophoneStream extends Thread {
 	}
 
 	private void bufferToDataWrap(int length) {
-		int rem = (data.length - offset) * sampleSize;
+		int rem = (data.length - offset) * getSampleSize();
 		int bOffset = 0;
 		if (length > rem) {
 			bufferToData(0, rem);
@@ -129,15 +133,14 @@ public class MicrophoneStream extends Thread {
 	@Override
 	public void run() {
 		try {
-			configFormat();
 			startLine();
 		} catch (LineUnavailableException e) {
 			throw new RuntimeException(e);
 		}
 		// armazena o que cabe no delay
-		buffer = new byte[frameSize * (int) (sampleRate * delay / 1000)];
+		buffer = new byte[format.getChannels() * getSampleSize() * (int) (format.getSampleRate() * delay / 1000)];
 		// armazena o que cabe em 1s
-		data = new int[channels * (int) sampleRate];
+		data = new int[format.getChannels() * (int) format.getSampleRate()];
 		offset = 0;
 		timeStart = System.currentTimeMillis();
 		pick = 0;
