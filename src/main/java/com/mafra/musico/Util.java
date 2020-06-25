@@ -22,12 +22,6 @@ public class Util {
 		}
 	}
 
-	public static void roundedFFT(double[] xR, double[] xI, int precision) {
-		FFT.fft(xR, xI);
-		roundArray(xR, precision);
-		roundArray(xI, precision);
-	}
-
 	public static double[] toDouble(int[] x, int sizeInBits) {
 		double precision = 1 << (sizeInBits - 1);
 		double[] y = new double[x.length];

@@ -1,44 +1,51 @@
 package com.mafra.musico;
 
+import org.junit.Test;
+
 import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FFTTest {
 
-	public static void main(String[] args) {
+	@Test
+	public void testFFT() {
 		int length = 65536;
 		int precision = 65536; // 2^16
-		
+
 		double[] xR = Util.randomArray(length, precision);
 		double[] xI = Util.randomArray(length, precision);
-		double[] yR, yI;
 
-		System.out.println("Measuring time...");
-		int tests = 200;
-		long time = -System.currentTimeMillis();
-		for (int i = 0; i < tests; i++) {
-			yR = Arrays.copyOf(xR, length);
-			yI = Arrays.copyOf(xI, length);
-			Util.roundedFFT(yR, yI, precision);
-		}
-		time = System.currentTimeMillis() + time;
-		System.out.println("Time elapsed (s): " + (time / 1000f) / tests);
-		
 		// verificação
-		yR = Arrays.copyOf(xR, length);
-		yI = Arrays.copyOf(xI, length);
+		double[] yR = Arrays.copyOf(xR, length);
+		double[] yI = Arrays.copyOf(xI, length);
 		FFT.fft(yR, yI);
 		FFT.ifft(yR, yI);
 		Util.roundArray(yR, precision);
 		Util.roundArray(yI, precision);
 		for (int i = 0; i < length; i++) {
-			if (yR[i] != xR[i] || yI[i] != xI[i]) {
-				System.out.println("Fail!");
-				System.out.println("Expected: " + xR[i] + " + " + xI[i] + "i");
-				System.out.println("Resulted: " + yR[i] + " + " + yI[i] + "i");
-				return;
-			}
+			assertThat(yR[i] + " + " + yI[i] + "i").isEqualTo(xR[i] + " + " + xI[i] + "i");
 		}
-		System.out.println("OK!");
+	}
+
+	private static final int QT_TESTS = 200;
+	private static final int EXPECTED_FOREACH_TIME = 20; // ms
+	private static final int TIMEOUT_FOREACH_TIME = 40; // ms
+
+	@Test(timeout = QT_TESTS * TIMEOUT_FOREACH_TIME)
+	public void testFFT_time() {
+		int length = 65536;
+		int precision = 65536; // 2^16
+		
+		double[] xR = Util.randomArray(length, precision);
+		double[] xI = Util.randomArray(length, precision);
+
+		long startTime = System.nanoTime();
+		for (int i = 0; i < QT_TESTS; i++) {
+			FFT.fft(xR, xI);
+		}
+		long time = (System.nanoTime() - startTime) / 1000_000;
+		assertThat(time / QT_TESTS).isLessThanOrEqualTo(EXPECTED_FOREACH_TIME);
 	}
 
 }
