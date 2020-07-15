@@ -58,6 +58,9 @@ public class MicrophoneStream extends Thread {
 	public synchronized int[] getLastData(int length) {
 		int offset = this.offset;
 		int[] lastData = new int[length];
+		if (data == null) {
+			return lastData;
+		}
 		if (offset > length) {
 			System.arraycopy(data, offset - length, lastData, 0, length);
 		} else {

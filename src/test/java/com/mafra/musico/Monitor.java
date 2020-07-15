@@ -5,6 +5,7 @@ public class Monitor {
 	public static void main(String[] args) {
 		MicrophoneStream mp = new MicrophoneStream();
 		Graph graph = new Graph();
+		graph.setPositive(true);
 		int size = Integer.highestOneBit((int) mp.getFormat().getSampleRate());
 		
 		mp.start();

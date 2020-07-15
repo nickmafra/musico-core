@@ -12,16 +12,13 @@ package com.mafra.musico;
  */
 public class FFT {
 
+	private FFT() {
+	}
+
 	// compute the FFT of x[], assuming its length is a power of 2
 	private static void fft(double[] xR, double[] xI, boolean inv) {
-		if (xR.length != xI.length) {
-			throw new IllegalArgumentException("arrays of different lengths");
-		}
 		// check that length is a power of 2
 		int n = xR.length;
-		if (Integer.highestOneBit(n) != n) {
-			throw new IllegalArgumentException("n is not a power of 2");
-		}
 
 		// bit reversal permutation
 		int shift = 1 + Integer.numberOfLeadingZeros(n);
@@ -68,23 +65,42 @@ public class FFT {
 		}
 	}
 
+	private static void validateSize(double[] xR) {
+		int n = xR.length;
+		if (n != Integer.highestOneBit(n)) {
+			throw new IllegalArgumentException("n is not a power of 2");
+		}
+	}
+
+	private static void validateSizes(double[] xR, double[] xI) {
+		if (xR.length != xI.length) {
+			throw new IllegalArgumentException("arrays of different lengths");
+		}
+		validateSize(xR);
+	}
+
 	public static void fft(double[] xR, double[] xI) {
+		validateSizes(xR, xI);
 		fft(xR, xI, false);
 	}
 
 	public static void ifft(double[] xR, double[] xI) {
+		validateSizes(xR, xI);
 		fft(xR, xI, true);
 	}
 
 	public static double[] fft(double[] xR) {
+		validateSize(xR);
 		double[] xI = new double[xR.length];
 		fft(xR, xI, false);
 		return getMagnitude(xR, xI);
 	}
 
 	public static double[] getMagnitude(double[] xR, double[] xI) {
-		double[] x = new double[Math.min(xR.length, xI.length)];
-		for (int i = 0; i < x.length; i++) {
+		validateSizes(xR, xI);
+		int n = xR.length;
+		double[] x = new double[n];
+		for (int i = 0; i < n; i++) {
 			x[i] = Math.hypot(xR[i], xI[i]);
 		}
 		return x;

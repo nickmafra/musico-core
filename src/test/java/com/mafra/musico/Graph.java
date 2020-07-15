@@ -24,6 +24,10 @@ public class Graph extends JFrame {
 		getContentPane().add(panel);
 	}
 
+	public void setPositive(boolean positive) {
+		this.positive = positive;
+	}
+
 	public void setPanelSize(int width, int height) {
 		this.width = width;
 		this.height = height;
@@ -46,12 +50,12 @@ public class Graph extends JFrame {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			Graphics2D g2 = (Graphics2D) g;
-			g2.setColor(Color.BLACK);
-			g2.fillRect(0, 0, getWidth(), getHeight());
 			if (data == null) {
 				return;
 			}
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setColor(Color.BLACK);
+			g2.fillRect(0, 0, getWidth(), getHeight());
 			
 			int y0 = positive ? height : height / 2;
 			int h = positive ? height : height / 2;
@@ -68,7 +72,7 @@ public class Graph extends JFrame {
 				}
 				v /= x1 - x0;
 				int y = (int) (y0 - v * h);
-				y = y < 0 ? 0 : y > height ? height : y;
+				y = y < 0 ? 0 : Math.min(y, height);
 				g2.drawLine(x, y0, x, y);
 			}
 		}
@@ -82,12 +86,10 @@ public class Graph extends JFrame {
 		Graph graph = new Graph();
 		graph.setPanelSize(length, precision);
 		graph.start();
-		
-		double[] data;
+
 		while(graph.isActive()) {
 			Thread.sleep(1000);
-			data = Util.randomArray(length, precision);
-			graph.setData(data);
+			graph.setData(Util.randomArray(length, precision));
 			graph.repaint();
 		}
 	}

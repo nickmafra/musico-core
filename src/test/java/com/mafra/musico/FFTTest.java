@@ -1,30 +1,32 @@
 package com.mafra.musico;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FFTTest {
+class FFTTest {
 
 	@Test
-	public void testFFT() {
+	void testFFT() {
 		int length = 65536;
 		int precision = 65536; // 2^16
 
-		double[] xR = Util.randomArray(length, precision);
-		double[] xI = Util.randomArray(length, precision);
+		double[] origR = Util.randomArray(length, precision);
+		double[] origI = Util.randomArray(length, precision);
 
 		// verificação
-		double[] yR = Arrays.copyOf(xR, length);
-		double[] yI = Arrays.copyOf(xI, length);
-		FFT.fft(yR, yI);
-		FFT.ifft(yR, yI);
-		Util.roundArray(yR, precision);
-		Util.roundArray(yI, precision);
+		double[] xR = Arrays.copyOf(origR, length);
+		double[] xI = Arrays.copyOf(origI, length);
+		FFT.fft(xR, xI);
+		FFT.ifft(xR, xI);
+		Util.roundArray(xR, precision);
+		Util.roundArray(xI, precision);
 		for (int i = 0; i < length; i++) {
-			assertThat(yR[i] + " + " + yI[i] + "i").isEqualTo(xR[i] + " + " + xI[i] + "i");
+			assertThat(xR[i] + " + " + xI[i] + "i").isEqualTo(origR[i] + " + " + origI[i] + "i");
 		}
 	}
 
@@ -32,8 +34,9 @@ public class FFTTest {
 	private static final int EXPECTED_FOREACH_TIME = 20; // ms
 	private static final int TIMEOUT_FOREACH_TIME = 40; // ms
 
-	@Test(timeout = QT_TESTS * TIMEOUT_FOREACH_TIME)
-	public void testFFT_time() {
+	@Test
+	@Timeout(value = QT_TESTS * TIMEOUT_FOREACH_TIME, unit = TimeUnit.MILLISECONDS)
+	void testFFT_time() {
 		int length = 65536;
 		int precision = 65536; // 2^16
 		
