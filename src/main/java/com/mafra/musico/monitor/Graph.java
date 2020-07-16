@@ -2,28 +2,24 @@ package com.mafra.musico.monitor;
 
 import com.mafra.musico.Util;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import javax.swing.*;
+import java.awt.*;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+public class Graph {
 
-public class Graph extends JFrame {
-	private static final long serialVersionUID = 1L;
-
+	private JFrame jFrame;
 	private GraphPanel panel;
 	
-	private int width = 1024, height = 1024;
+	private int width = 1024;
+	private int height = 1024;
 	private double[] data;
 	private boolean positive;
 
 	public Graph() {
-		super("Graph");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		jFrame = new JFrame("Graph");
+		jFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		panel = new GraphPanel();
-		getContentPane().add(panel);
+		jFrame.getContentPane().add(panel);
 	}
 
 	public void setPositive(boolean positive) {
@@ -41,9 +37,21 @@ public class Graph extends JFrame {
 
 	public void start() {
 		panel.setPreferredSize(new Dimension(width, height));
-		pack();
-		setLocationRelativeTo(null);
-		setVisible(true);
+		jFrame.pack();
+		jFrame.setLocationRelativeTo(null);
+		jFrame.setVisible(true);
+	}
+
+	public boolean isActive() {
+		return jFrame.isActive();
+	}
+
+	public void repaint() {
+		jFrame.repaint();
+	}
+
+	public boolean isVisible() {
+		return jFrame.isVisible();
 	}
 
 	public class GraphPanel extends JPanel {
@@ -58,7 +66,7 @@ public class Graph extends JFrame {
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setColor(Color.BLACK);
 			g2.fillRect(0, 0, getWidth(), getHeight());
-			
+
 			int y0 = positive ? height : height / 2;
 			int h = positive ? height : height / 2;
 			g2.setColor(Color.WHITE);

@@ -33,4 +33,12 @@ public class Util {
 		return y;
 	}
 
+	public static double[] normalize(double[] x, int unit) {
+		double[] y = new double[x.length];
+		for (int i = 0; i < x.length; i++) {
+			y[i] = ((double) x[i]) / unit;
+		}
+		return y;
+	}
+
 }
