@@ -1,4 +1,6 @@
-package com.mafra.musico;
+package com.mafra.musico.monitor;
+
+import com.mafra.musico.Util;
 
 import java.awt.Color;
 import java.awt.Dimension;

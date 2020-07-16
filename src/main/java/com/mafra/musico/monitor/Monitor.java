@@ -1,4 +1,8 @@
-package com.mafra.musico;
+package com.mafra.musico.monitor;
+
+import com.mafra.musico.FFT;
+import com.mafra.musico.MicrophoneStream;
+import com.mafra.musico.Util;
 
 public class Monitor {
 
