@@ -18,8 +18,6 @@ public class MicrophoneStream extends Thread {
 	private byte[] buffer;
 	private volatile int[] data;
 	private volatile int offset = 0;
-	private long timeStart;
-	private int pick;
 
 	public MicrophoneStream() {
 		super("Microphone");
@@ -32,11 +30,20 @@ public class MicrophoneStream extends Thread {
 
 	/**
 	 * Equivalent to getFormat().getSampleSizeInBits() / 8
-	 * 
+	 *
 	 * @return the sample size, in bytes
 	 */
-	public int getSampleSize() {
-		return format.getSampleSizeInBits() / 8;
+	public int getSampleSizeInBytes() {
+		return getSampleSizeInBits() / 8;
+	}
+
+	/**
+	 * Equivalent to getFormat().getSampleSizeInBits()
+	 *
+	 * @return the sample size, in bits
+	 */
+	public int getSampleSizeInBits() {
+		return format.getSampleSizeInBits();
 	}
 
 	public TargetDataLine getTargetLine() {
@@ -80,8 +87,7 @@ public class MicrophoneStream extends Thread {
 	public void configFormat(float sampleRate, int sampleSizeInBits, int channels) {
 		boolean signed = true;
 		boolean bigEndian = false;
-		format = new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
-		configFormat(format);
+		configFormat(new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian));
 	}
 
 	public void configDefaultFormat() {
@@ -89,8 +95,8 @@ public class MicrophoneStream extends Thread {
 	}
 
 	private synchronized void bufferToData(int bOffset, int length) {
-		int sampleSize = getSampleSize();
-		int range = 1 << (format.getSampleSizeInBits() - 1);
+		int sampleSize = getSampleSizeInBytes();
+		int range = 1 << (getSampleSizeInBits() - 1);
 		for (int i = 0; i < length; i += sampleSize) {
 			byte b0 = buffer[bOffset + i];
 			byte b1 = buffer[bOffset + i + 1];
@@ -106,7 +112,7 @@ public class MicrophoneStream extends Thread {
 	}
 
 	private void bufferToDataWrap(int length) {
-		int rem = (data.length - offset) * getSampleSize();
+		int rem = (data.length - offset) * getSampleSizeInBytes();
 		int bOffset = 0;
 		if (length > rem) {
 			bufferToData(0, rem);
@@ -140,12 +146,12 @@ public class MicrophoneStream extends Thread {
 			throw new RuntimeException(e);
 		}
 		// armazena o que cabe no delay
-		buffer = new byte[format.getChannels() * getSampleSize() * (int) (format.getSampleRate() * delay / 1000)];
+		buffer = new byte[format.getChannels() * getSampleSizeInBytes() * (int) (format.getSampleRate() * delay / 1000)];
 		// armazena o que cabe em 1s
 		data = new int[format.getChannels() * (int) format.getSampleRate()];
 		offset = 0;
-		timeStart = System.currentTimeMillis();
-		pick = 0;
+		long timeStart = System.currentTimeMillis();
+		int pick = 0;
 		long dt;
 		while (!isInterrupted()) {
 			int len = targetLine.read(buffer, 0, buffer.length);

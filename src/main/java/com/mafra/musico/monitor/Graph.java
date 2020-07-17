@@ -14,6 +14,7 @@ public class Graph {
 	private int height = 1024;
 	private double[] data;
 	private boolean positive;
+	private int hueVariation = 110;
 
 	public Graph() {
 		jFrame = new JFrame("Graph");
@@ -60,17 +61,18 @@ public class Graph {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			if (data == null) {
-				return;
-			}
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setColor(Color.BLACK);
 			g2.fillRect(0, 0, getWidth(), getHeight());
 
+			if (data == null) {
+				return;
+			}
+
 			int y0 = positive ? height : height / 2;
 			int h = positive ? height : height / 2;
-			g2.setColor(Color.WHITE);
 			for (int x = 0; x < width; x++) {
+				g2.setColor(Color.getHSBColor((x % hueVariation) / (float) hueVariation, 1, 1));
 				double v = 0;
 				int x0 = data.length * x / width;
 				int x1 = data.length * (x + 1) / width;
